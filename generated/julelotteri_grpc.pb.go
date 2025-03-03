@@ -20,8 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	LotteriService_GetWinner_FullMethodName  = "/julelotteri.LotteriService/GetWinner"
-	LotteriService_GetPlayers_FullMethodName = "/julelotteri.LotteriService/GetPlayers"
+	LotteriService_GetWinner_FullMethodName       = "/julelotteri.LotteriService/GetWinner"
+	LotteriService_GetPlayers_FullMethodName      = "/julelotteri.LotteriService/GetPlayers"
+	LotteriService_ImportExcelFile_FullMethodName = "/julelotteri.LotteriService/ImportExcelFile"
 )
 
 // LotteriServiceClient is the client API for LotteriService service.
@@ -30,6 +31,7 @@ const (
 type LotteriServiceClient interface {
 	GetWinner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Player, error)
 	GetPlayers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PlayerList, error)
+	ImportExcelFile(ctx context.Context, in *ImportExcelFileRequest, opts ...grpc.CallOption) (*ImportExcelFileResponse, error)
 }
 
 type lotteriServiceClient struct {
@@ -60,12 +62,23 @@ func (c *lotteriServiceClient) GetPlayers(ctx context.Context, in *emptypb.Empty
 	return out, nil
 }
 
+func (c *lotteriServiceClient) ImportExcelFile(ctx context.Context, in *ImportExcelFileRequest, opts ...grpc.CallOption) (*ImportExcelFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportExcelFileResponse)
+	err := c.cc.Invoke(ctx, LotteriService_ImportExcelFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LotteriServiceServer is the server API for LotteriService service.
 // All implementations must embed UnimplementedLotteriServiceServer
 // for forward compatibility
 type LotteriServiceServer interface {
 	GetWinner(context.Context, *emptypb.Empty) (*Player, error)
 	GetPlayers(context.Context, *emptypb.Empty) (*PlayerList, error)
+	ImportExcelFile(context.Context, *ImportExcelFileRequest) (*ImportExcelFileResponse, error)
 	mustEmbedUnimplementedLotteriServiceServer()
 }
 
@@ -78,6 +91,9 @@ func (UnimplementedLotteriServiceServer) GetWinner(context.Context, *emptypb.Emp
 }
 func (UnimplementedLotteriServiceServer) GetPlayers(context.Context, *emptypb.Empty) (*PlayerList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPlayers not implemented")
+}
+func (UnimplementedLotteriServiceServer) ImportExcelFile(context.Context, *ImportExcelFileRequest) (*ImportExcelFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ImportExcelFile not implemented")
 }
 func (UnimplementedLotteriServiceServer) mustEmbedUnimplementedLotteriServiceServer() {}
 
@@ -128,6 +144,24 @@ func _LotteriService_GetPlayers_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LotteriService_ImportExcelFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportExcelFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LotteriServiceServer).ImportExcelFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LotteriService_ImportExcelFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LotteriServiceServer).ImportExcelFile(ctx, req.(*ImportExcelFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LotteriService_ServiceDesc is the grpc.ServiceDesc for LotteriService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -142,6 +176,10 @@ var LotteriService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPlayers",
 			Handler:    _LotteriService_GetPlayers_Handler,
+		},
+		{
+			MethodName: "ImportExcelFile",
+			Handler:    _LotteriService_ImportExcelFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

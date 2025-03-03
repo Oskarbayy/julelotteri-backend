@@ -8,13 +8,24 @@ import "google/protobuf/empty.proto";
 message Player {
     int32 id = 1;
     string name = 2;
-}
-
-message PlayerList {
+    bool won = 3;
+  }
+  
+  message PlayerList {
     repeated Player players = 1;
-}
-
-service LotteriService {
-    rpc GetWinner(google.protobuf.Empty) returns (Player) {}
-    rpc GetPlayers(google.protobuf.Empty) returns (PlayerList) {} // for loading 
-}
+  }
+  
+  message ImportExcelFileRequest {
+    bytes file_data = 1;
+  }
+  
+  message ImportExcelFileResponse {
+    bool success = 1;
+  }
+  
+  service LotteriService {
+    rpc GetWinner(google.protobuf.Empty) returns (Player);
+    rpc GetPlayers(google.protobuf.Empty) returns (PlayerList);
+    rpc ImportExcelFile(ImportExcelFileRequest) returns (ImportExcelFileResponse);
+  }
+  
