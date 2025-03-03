@@ -133,6 +133,5 @@ func (s *LotteriService) GetPlayers(ctx context.Context, req *emptypb.Empty) (*j
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating over players: %v", err)
 	}
-	print(&julelotteri.PlayerList{Players: players})
 	return &julelotteri.PlayerList{Players: players}, nil
 }
