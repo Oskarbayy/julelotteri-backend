@@ -22,16 +22,16 @@ type LotteriService struct {
 func (s *LotteriService) GetWinner(ctx context.Context, req *emptypb.Empty) (*julelotteri.Player, error) {
 	fmt.Println("Client requesting winner...")
 
-	var id int32
+	var number int32
 	var name string
 	var won bool
 	// Select only players who haven't won (won = 0)
-	err := s.DB.QueryRow("SELECT id, name, won FROM players WHERE won = 0 ORDER BY RANDOM() LIMIT 1").Scan(&id, &name, &won)
+	err := s.DB.QueryRow("SELECT number, name, won FROM players WHERE won = 0 ORDER BY RANDOM() LIMIT 1").Scan(&number, &name, &won)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No players available with won=false, return dummy data.
 			name = "_____"
-			id = 0
+			number = 0
 			won = false
 			fmt.Println("No players with won=false found, returning dummy data.")
 		} else {
@@ -40,15 +40,15 @@ func (s *LotteriService) GetWinner(ctx context.Context, req *emptypb.Empty) (*ju
 	}
 
 	// update the player so that they are marked as won
-	_, updateErr := s.DB.Exec("UPDATE players SET won = 1 WHERE id = ?", id)
+	_, updateErr := s.DB.Exec("UPDATE players SET won = 1 WHERE number = ?", number) // maybe base this off of id not number later?
 	if updateErr != nil {
 		log.Printf("Failed to update player's won status: %v", updateErr)
 	}
 
 	player := &julelotteri.Player{
-		Name: name,
-		Id:   id,
-		Won:  won,
+		Name:   name,
+		Number: number,
+		Won:    won,
 	}
 
 	fmt.Println("Responding to client with a valid winner...")
@@ -109,7 +109,7 @@ func (s *LotteriService) ImportExcelFile(ctx context.Context, req *julelotteri.I
 
 func (s *LotteriService) GetPlayers(ctx context.Context, req *emptypb.Empty) (*julelotteri.PlayerList, error) {
 	// Query for players where won is false (0).
-	rows, err := s.DB.Query("SELECT id, name, won FROM players WHERE won = 0")
+	rows, err := s.DB.Query("SELECT number, name, won FROM players WHERE won = 0")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query players: %v", err)
 	}
@@ -124,9 +124,9 @@ func (s *LotteriService) GetPlayers(ctx context.Context, req *emptypb.Empty) (*j
 			return nil, fmt.Errorf("failed to scan player: %v", err)
 		}
 		players = append(players, &julelotteri.Player{
-			Id:   number,
-			Name: name,
-			Won:  won,
+			Number: number,
+			Name:   name,
+			Won:    won,
 		})
 	}
 
